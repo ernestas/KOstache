@@ -121,8 +121,29 @@ class Kohana_Kostache extends Mustache
 		}
 	}
 
+	/**
+	 * Before method, for anything that needs doing before rendering
+	 */
+	public function before()
+	{
+		// Nothing by default!
+	}
+
+	/**
+	 * After method, for anything that needs doing after rendering
+	 *
+	 * @param   string   The rendered string
+	 * @return  string   The final string
+	 */
+	public function after($rendered_string)
+	{
+		return $rendered_string;
+	}
+
 	public function render($template = null, $view = null, $partials = null)
 	{
+		$this->before();
+
 		if (NULL === $template)
 		{
 			// Override the template location to match kohana's conventions
@@ -159,6 +180,7 @@ class Kohana_Kostache extends Mustache
 			$this->_partials_processed = TRUE;
 		}
 
-		return parent::render($template, $view, $partials);
+		$render = parent::render($template, $view, $partials);
+		return $this->after($render);
 	}
 }

@@ -129,7 +129,7 @@ You must define partials within the $_partials array in your view class.  The ke
 
 KOstache comes with a View_Layout class instead of a template controller. This allows your layouts to be more OOP and self contained, and they do not rely on your controllers so much.
 
-To use it, have your view extend the View_Layout class. You can then specify your own layout file by placing it in templates/layout.mustache. At a minimum, it needs to have a {{>body}} partial defined in it.
+To use it, have your view extend the View_Layout class. You can then specify your own layout file by placing it in templates/layout.mustache. At a minimum, it needs to have a {{&body}} variable defined in it.
 
 If you have a view that extends the View_Layout class, but wish to render only the template and not the entire layout, you can set the public $render_layout property to FALSE.  This is useful if you want to use the same view class for external requests and HMVC requests.
 
@@ -138,6 +138,39 @@ If you have a view that extends the View_Layout class, but wish to render only t
     {
         $view->render_layout = FALSE;
     }
+
+## Using another layout in a View_Layout
+
+Work in progress, suggestions for better code structure are welcome.
+
+In this example sub-layout will be called View_Home. To use it, have your view extend View_Home class which in turn extends View_Layout class.
+
+Example of View_Home:
+
+	class View_Home extends View_Layout
+	{
+		protected $_layout = 'home';
+
+		public $render_layout = TRUE;
+
+		public function after($rendered_string)
+		{
+			if ($this->_layout === NULL OR ! $this->render_layout)
+			return $rendered_string;
+
+			// Add body as a property
+			$this->body_home = $rendered_string;
+
+			// Put this class into a layout view
+			$layout = new VIew_Layout($this->_layout, $this);
+
+			return $layout->render();
+		}
+	}
+
+And templates/home.mustache at minimum needs to have a variable defined in View_Home:
+
+	{{&body_home}}
 
 For specific usage and documentation, see:
 
