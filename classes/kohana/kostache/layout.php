@@ -25,9 +25,17 @@ abstract class Kohana_Kostache_Layout extends Kostache {
 	/**
 	 * @var  string  layout path
 	 */
-	protected $_layout = 'layout';
+	protected static $_layout = 'layout';
 
-	public function render()
+	/**
+	 * Adds template or child layout, if passed as parameter, as content partial.
+	 * Returns this layout or renders parent layout with this layout as child layout
+	 * if parent layout is defined.
+	 *
+	 * @param   string  child layout
+	 * @return  string
+	 */
+	public function render($child_layout = NULL)
 	{
 		if ( ! $this->render_layout)
 		{
@@ -36,11 +44,25 @@ abstract class Kohana_Kostache_Layout extends Kostache {
 
 		$partials = $this->_partials;
 
-		$partials[Kostache_Layout::CONTENT_PARTIAL] = $this->_template;
+		// add current template or child_layout as content partial
+		$partials[Kostache_Layout::CONTENT_PARTIAL] = (NULL == $child_layout) ? $this->_template : $child_layout;
 
-		$template = $this->_load($this->_layout);
+		// late static binding of a $_layout template
+		$template = $this->_load(static::$_layout);
 
-		return $this->_stash($template, $this, $partials)->render();
+		if ( ! isset(static::$_parent_layout))
+		{
+			return $this->_stash($template, $this, $partials)->render();
+		}
+		else
+		{
+			$this_layout = $this->_stash($template, $this, $partials)->render();
+
+			// late static binding of parent layout class
+			$parent_layout_class = new static::$_parent_layout;
+
+			// pass this layout as child_layout to the parent_layout
+			return $parent_layout_class->render($this_layout);
+		}
 	}
-
 }
